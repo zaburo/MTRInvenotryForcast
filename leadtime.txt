@@ -1,0 +1,52 @@
+SELECT
+    msi.segment1,
+    poh.APPROVED_DATE,
+    pll.need_by_date,
+    pll.promised_date,
+    rcv.primary_quantity                  transaction_quantity,
+    pll.quantity - pll.quantity_cancelled PO_quantity,
+    pll.quantity_received                 accumulated_quantity_received,
+    rcv.transaction_date,
+    poh.segment1                          po_number,
+    poh.type_lookup_code,
+    pr.release_num,
+    poh.creation_date,
+    pv.vendor_name                        supplier,
+    pvs.vendor_site_code                  supplier_site_code,
+    hl.location_code                      ship_to_location_code,
+    msi.segment1                          item_number,
+    msi.description                       item_desc,
+    msi.inventory_item_status_code        item_status,
+    pol.unit_price
+FROM
+    po_headers_all               poh,
+    po_lines_all                 pol,
+    po_line_locations_all        pll,
+    po_releases_all              pr,
+    mtl_system_items             msi,
+    org_organization_definitions mp,
+    po_vendors                   pv,
+    po_vendor_sites_all          pvs,
+    hr_locations                 hl,
+    hr_operating_units           hou,
+    (select  po_line_location_id, SUBINVENTORY_CODE, rcv.transaction_date, mmt.PRIMARY_QUANTITY  from 
+    rcv_transactions             rcv,
+    mtl_material_transactions    mmt
+    where 1=1 AND mmt.rcv_transaction_id = rcv.transaction_id ) rcv
+WHERE 1=1
+    AND poh.type_lookup_code IN ( 'BLANKET', 'STANDARD' )
+    AND msi.inventory_item_id = pol.item_id
+    AND msi.organization_id = pll.ship_to_organization_id
+    AND mp.organization_id = msi.organization_id
+    AND poh.po_header_id = pol.po_header_id
+    AND pol.po_line_id = pll.po_line_id
+    AND pr.po_header_id (+) = poh.po_header_id
+    AND nvl(pll.po_release_id, 1) = nvl(pr.po_release_id, 1)
+    AND poh.vendor_id = pv.vendor_id
+    AND poh.vendor_site_id = pvs.vendor_site_id 
+    AND pvs.vendor_id  = pv.vendor_id
+    AND hl.location_id (+) = poh.ship_to_location_id
+    AND poh.org_id = hou.organization_id
+    --AND msi.segment1 in ('681900655','641412118','650303920','660110035','661605002')
+    AND pll.line_location_id = rcv.po_line_location_id
+ORDER BY TRANSACTION_DATE;

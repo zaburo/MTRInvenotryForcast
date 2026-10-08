@@ -1,0 +1,14 @@
+oracledb>=2.0
+pandas>=2.0
+numpy>=1.24
+scikit-learn>=1.3
+matplotlib>=3.7
+seaborn>=0.13
+xgboost>=2.0
+lightgbm>=4.1
+catboost>=1.2
+hyperopt>=0.2.7
+shap>=0.44
+pyarrow>=14.0
+hgboost>=1.1.0
+tqdm>=4.66
